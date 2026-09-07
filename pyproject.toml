@@ -1,0 +1,61 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jupyter-notebook-slide"
+version = "0.1.0"
+description = "Jupyter- and Colab-compatible slides rendered as self-contained HTML inside notebook cells"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
+authors = [{ name = "Diego Sevilla Ruiz", email = "dsevilla@um.es" }]
+keywords = ["jupyter", "ipython", "colab", "notebook", "slides", "teaching", "magic"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: IPython",
+    "Framework :: Jupyter",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Education",
+]
+dependencies = ["ipython>=7.0"]
+
+[project.urls]
+Homepage = "https://github.com/dsevilla/jupyter-notebook-slide"
+Repository = "https://github.com/dsevilla/jupyter-notebook-slide"
+Issues = "https://github.com/dsevilla/jupyter-notebook-slide/issues"
+Changelog = "https://github.com/dsevilla/jupyter-notebook-slide/blob/main/CHANGELOG.md"
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0",
+    "ruff>=0.6",
+    "nbformat>=5.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/notebook_slide"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "examples", "README.md", "LICENSE", "CHANGELOG.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 96
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "W"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
