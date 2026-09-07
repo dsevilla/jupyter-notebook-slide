@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-09-07
+
+### Fixed
+
+- `***bold italic***` now renders as `<strong><em>…</em></strong>`. It used to
+  be split into a bold run plus a stray asterisk, which produced mis-nested
+  tags (`<strong><em>x</strong></em>`).
+
 ## [0.1.0] - 2026-09-07
 
 First packaged release, extracted from the inline `%%diapositiva` magic used in
@@ -30,5 +38,6 @@ the BDGE course notebooks and translated to English.
 - Python API (`slide`, `slide_html`, `markdown_to_html`, `format_inline`) for
   use outside notebooks.
 
-[Unreleased]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/dsevilla/jupyter-notebook-slide/releases/tag/v0.1.0

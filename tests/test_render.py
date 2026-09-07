@@ -104,3 +104,20 @@ def test_title_layout_respects_an_explicit_heading_override():
 
     ns.register_slide_type("part", "Part", "#123456", layout="title", heading="#abcdef")
     assert "#abcdef" in ns.slide_html("# Part two", type="part")
+
+
+def test_bold_italic_nests_correctly():
+    html = format_inline("el ***footer*** del fichero")
+    assert "<strong><em>footer</em></strong>" in html
+    assert "<em>" not in html.replace("<em>footer</em>", "")
+
+
+def test_bold_italic_next_to_plain_bold_and_italic():
+    html = format_inline("***a*** **b** *c*")
+    assert "<strong><em>a</em></strong>" in html
+    assert "<strong>b</strong>" in html
+    assert "<em>c</em>" in html
+
+
+def test_bold_italic_inside_code_is_left_alone():
+    assert "***x***" in format_inline("`***x***`")

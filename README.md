@@ -74,7 +74,7 @@ Deliberately tiny, so a slide always fits on screen:
 | `- item` | bullet list |
 | `1. item` | numbered list |
 | `> note` | call-out box in the accent colour |
-| `**bold**`, `*italic*` | emphasis |
+| `**bold**`, `*italic*`, `***both***` | emphasis |
 | `` `code` `` | inline code chip |
 | `[text](https://…)` | link (only `http(s):`, `mailto:` and relative URLs) |
 

@@ -29,6 +29,7 @@ from .theme import SlideType, Theme
 __all__ = ["format_inline", "markdown_to_html", "render_slide"]
 
 _CODE_SPLIT = re.compile(r"(`[^`]*`)")
+_BOLD_ITALIC = re.compile(r"\*\*\*(.+?)\*\*\*")
 _BOLD = re.compile(r"\*\*(.+?)\*\*")
 _ITALIC = re.compile(r"\*(.+?)\*")
 _LINK = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
@@ -59,6 +60,9 @@ def format_inline(text: str, theme: Theme | None = None) -> str:
             continue
 
         safe = escape(chunk)
+        # Bold-italic first: otherwise `***x***` would be split into a bold run
+        # and a stray asterisk, producing mis-nested tags.
+        safe = _BOLD_ITALIC.sub(lambda m: f"<strong><em>{m.group(1)}</em></strong>", safe)
         safe = _BOLD.sub(lambda m: f"<strong>{m.group(1)}</strong>", safe)
         safe = _ITALIC.sub(lambda m: f"<em>{m.group(1)}</em>", safe)
         safe = _LINK.sub(lambda m: _link_replacement(m, theme), safe)
