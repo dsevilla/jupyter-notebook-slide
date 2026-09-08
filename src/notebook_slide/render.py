@@ -70,12 +70,22 @@ def format_inline(text: str, theme: Theme | None = None) -> str:
     return "".join(parts)
 
 
-def markdown_to_html(text: str, theme: Theme | None = None) -> str:
-    """Convert the slide Markdown dialect in ``text`` to an HTML fragment."""
+def markdown_to_html(
+    text: str,
+    theme: Theme | None = None,
+    *,
+    heading_align: str | None = None,
+) -> str:
+    """Convert the slide Markdown dialect in ``text`` to an HTML fragment.
+
+    ``heading_align`` is used by the title layout to centre headings without
+    changing the alignment inherited by the rest of the slide body.
+    """
     theme = theme or Theme()
     blocks: list[str] = []
     items: list[str] = []
     ordered = False
+    heading_alignment = f"text-align:{heading_align};" if heading_align else ""
 
     def close_list() -> None:
         nonlocal ordered
@@ -113,16 +123,19 @@ def markdown_to_html(text: str, theme: Theme | None = None) -> str:
             close_list()
             if line.startswith("# "):
                 blocks.append(
-                    f"<h1 style='color:{theme.heading};"
-                    f"font-family:{theme.headings_font};"
+                    f'<h1 style="color:{escape(theme.heading, quote=True)};'
+                    f"font-family:{escape(theme.headings_font, quote=True)};"
                     f"font-size:{theme.heading_font_size};line-height:1.15;"
-                    "margin:0 0 22px'>" + format_inline(line[2:], theme) + "</h1>"
+                    f'{heading_alignment}margin:0 0 22px">'
+                    + format_inline(line[2:], theme)
+                    + "</h1>"
                 )
             elif line.startswith("## "):
                 blocks.append(
-                    f"<h2 style='color:{theme.subheading};"
-                    f"font-family:{theme.headings_font};"
-                    f"font-size:{theme.subheading_font_size};margin:18px 0 8px'>"
+                    f'<h2 style="color:{escape(theme.subheading, quote=True)};'
+                    f"font-family:{escape(theme.headings_font, quote=True)};"
+                    f"font-size:{theme.subheading_font_size};"
+                    f'{heading_alignment}margin:18px 0 8px">'
                     + format_inline(line[3:], theme)
                     + "</h2>"
                 )
@@ -156,8 +169,9 @@ def render_slide(
     """Render ``body`` as a self-contained slide and return its HTML.
 
     ``slide_type`` supplies the badge label, the accent colour and the layout;
-    ``theme`` supplies everything else.  Pass ``label`` to override the badge
-    text for this slide only.
+    ``theme`` supplies everything else.  Default-layout slides render the
+    badge; title-layout slides omit it.  Pass ``label`` to override the badge
+    text for a default-layout slide only.
     """
     theme = slide_type.resolve_theme(theme or Theme())
     badge = label if label is not None else slide_type.label
@@ -169,7 +183,7 @@ def render_slide(
         # otherwise, its heading takes the accent colour too.
         if "heading" not in slide_type.overrides:
             theme = theme.replace(heading=theme.accent)
-        return _render_title(markdown_to_html(body, theme), badge, theme)
+        return _render_title(markdown_to_html(body, theme, heading_align="center"), theme)
     return _render_default(content, badge, theme)
 
 
@@ -196,15 +210,8 @@ def _render_default(content: str, badge: str, theme: Theme) -> str:
 """
 
 
-def _render_title(content: str, badge: str, theme: Theme) -> str:
-    """Section divider: centred, accent-framed and visually quieter."""
-    badge_html = (
-        f'<div style="color:{theme.accent};font-size:{theme.label_font_size};'
-        "font-weight:bold;letter-spacing:3px;margin-bottom:22px;"
-        f'text-transform:uppercase">{escape(badge)}</div>'
-        if badge
-        else ""
-    )
+def _render_title(content: str, theme: Theme) -> str:
+    """Section divider with centred headings and a left-aligned body."""
     return f"""
 {_font_link(theme)}<div style="box-sizing:border-box;width:100%;max-width:{theme.max_width};
      min-height:{theme.min_height};margin:{theme.margin};padding:{theme.padding};
@@ -215,8 +222,7 @@ def _render_title(content: str, badge: str, theme: Theme) -> str:
      border-radius:{theme.border_radius};font-family:{theme.font_family};
      font-size:{theme.font_size};line-height:{theme.line_height};
      display:flex;flex-direction:column;justify-content:center;
-     text-align:center;overflow:hidden">
-  {badge_html}
-  <div style="margin:0 auto;max-width:44ch">{content}</div>
+     text-align:left;overflow:hidden">
+  <div style="margin:0 auto;max-width:44ch;text-align:left">{content}</div>
 </div>
 """

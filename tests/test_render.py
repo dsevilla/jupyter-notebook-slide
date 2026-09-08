@@ -75,12 +75,14 @@ def test_default_font_is_atkinson_hyperlegible():
     assert "fonts.googleapis.com" in html
 
 
-def test_title_layout_is_centred_and_framed():
-    html = slide_html("# Part two", type="title")
-    assert "text-align:center" in html
+def test_title_layout_centres_headings_but_left_aligns_body():
+    html = slide_html("# Part two\n## Subtitle\n\n- first\n- second", type="title")
+    assert html.count("text-align:center") == 2
+    assert "max-width:44ch;text-align:left" in html
+    assert "<ul style='margin:18px 0 8px;padding-left:30px'>" in html
     assert "border-left:10px solid" in html
-    assert "SECTION" not in html  # the label is uppercased by CSS, not by us
-    assert "Section" in html
+    assert "SECTION" not in html
+    assert "Section" not in html
 
 
 def test_default_layout_is_left_aligned():

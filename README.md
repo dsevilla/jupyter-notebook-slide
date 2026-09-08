@@ -44,7 +44,7 @@ In a notebook (Colab included), install and load in one go:
 %load_ext notebook_slide
 ```
 
-Pin a release with `@v0.1.0` at the end of the URL.
+Pin a release with `@v0.1.2` at the end of the URL.
 
 ## Slide types
 
@@ -53,7 +53,7 @@ Pin a release with `@v0.1.0` at the end of the URL.
 | `preview` (default) | Coming up | left-aligned | what the next stretch of notebook will do |
 | `summary` | Recap | left-aligned | what the reader should take away |
 | `question` | Guiding question | left-aligned | the question the next cells answer |
-| `title` | Section | centred, framed both sides | a section break between parts |
+| `title` | — | centred headings, left-aligned body, framed both sides | a section break between parts |
 
 ```python
 %%slide title
@@ -160,7 +160,7 @@ ns.register_slide_type("warning", "Careful", "#b45309", background="#fff7ed")
 ```
 
 Two layouts exist: `"default"` (left-aligned content) and `"title"` (centred
-section divider).
+headings with a left-aligned body, framed as a section divider).
 
 Prefer to write the magic in your own language? Register an alias:
 
@@ -224,7 +224,9 @@ uv run ruff format .
 ```
 
 Versioning follows [Semantic Versioning](https://semver.org/); see
-[CHANGELOG.md](CHANGELOG.md).
+[CHANGELOG.md](CHANGELOG.md). When the version in `pyproject.toml` changes on
+`main`, GitHub Actions builds the package and creates the corresponding GitHub
+release and `v<version>` tag automatically.
 
 ## License
 

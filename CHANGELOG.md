@@ -6,6 +6,19 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-09-08
+
+### Changed
+
+- Title slides no longer show a section badge; headings remain centred while
+  their body content is left-aligned.
+- The README now points at the current `v0.1.2` release.
+
+### Added
+
+- GitHub Actions now creates a `v<version>` tag and GitHub release when the
+  project version changes on `main`.
+
 ## [0.1.1] - 2026-09-07
 
 ### Fixed
@@ -38,6 +51,7 @@ the BDGE course notebooks and translated to English.
 - Python API (`slide`, `slide_html`, `markdown_to_html`, `format_inline`) for
   use outside notebooks.
 
-[Unreleased]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/dsevilla/jupyter-notebook-slide/releases/tag/v0.1.0

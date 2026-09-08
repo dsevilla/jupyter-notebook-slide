@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "jupyter-notebook-slide"
-version = "0.1.1"
+version = "0.1.2"
 description = "Jupyter- and Colab-compatible slides rendered as self-contained HTML inside notebook cells"
 readme = "README.md"
 license = { file = "LICENSE" }
