@@ -44,7 +44,7 @@ In a notebook (Colab included), install and load in one go:
 %load_ext notebook_slide
 ```
 
-Pin a release with `@v0.1.3` at the end of the URL.
+Pin a release with `@v0.1.4` at the end of the URL.
 
 ## Slide types
 

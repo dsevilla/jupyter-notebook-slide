@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-09-11
+
+### Changed
+
+- Removed the unused `nbformat` development dependency.
+
 ## [0.1.3] - 2026-09-11
 
 ### Added
@@ -63,7 +69,8 @@ the BDGE course notebooks and translated to English.
 - Python API (`slide`, `slide_html`, `markdown_to_html`, `format_inline`) for
   use outside notebooks.
 
-[Unreleased]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.0...v0.1.1
