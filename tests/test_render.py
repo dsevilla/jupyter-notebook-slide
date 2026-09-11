@@ -52,6 +52,30 @@ def test_blank_line_splits_consecutive_lists():
     assert html.count("<ul") == 2
 
 
+def test_nested_bullet_lists_preserve_indentation():
+    html = markdown_to_html("- Point 1\n  - Subpoint 1.1\n- Point 2")
+    assert html.count("<ul") == 2
+    assert "Point 1<ul" in html
+    assert "Subpoint 1.1</li></ul></li><li" in html
+
+
+def test_nested_numbered_lists_preserve_indentation():
+    html = markdown_to_html("1. Point 1\n   1. Subpoint 1.1\n2. Point 2")
+    assert html.count("<ol") == 2
+    assert "Point 1<ol" in html
+    assert "Subpoint 1.1</li></ol></li><li" in html
+
+
+def test_nested_lists_can_mix_markers_and_return_multiple_levels():
+    html = markdown_to_html("- Point\n  1. First\n    - Detail\n  2. Second\n- Last")
+    assert html.count("<ul") == 2
+    assert html.count("<ol") == 1
+    assert "Point<ol" in html
+    assert "First<ul" in html
+    assert "Detail</li></ul></li><li" in html
+    assert "Second</li></ol></li><li" in html
+
+
 def test_theme_colours_reach_the_output():
     theme = Theme(accent="#123456", background="#abcdef", heading="#0f0f0f")
     html = render_slide("# Hi", default_slide_types()["preview"].replace(color=None), theme)

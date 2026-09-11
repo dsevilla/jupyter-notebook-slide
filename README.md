@@ -44,7 +44,7 @@ In a notebook (Colab included), install and load in one go:
 %load_ext notebook_slide
 ```
 
-Pin a release with `@v0.1.2` at the end of the URL.
+Pin a release with `@v0.1.3` at the end of the URL.
 
 ## Slide types
 
@@ -71,8 +71,8 @@ Deliberately tiny, so a slide always fits on screen:
 | --- | --- |
 | `# Heading` | slide heading |
 | `## Subheading` | section heading inside the slide |
-| `- item` | bullet list |
-| `1. item` | numbered list |
+| `- item` | bullet list (indent with spaces to nest items) |
+| `1. item` | numbered list (indent with spaces to nest items) |
 | `> note` | call-out box in the accent colour |
 | `**bold**`, `*italic*`, `***both***` | emphasis |
 | `` `code` `` | inline code chip |
@@ -80,6 +80,16 @@ Deliberately tiny, so a slide always fits on screen:
 
 Everything else becomes a paragraph, and all text is HTML-escaped, so pasting
 `<script>` into a slide is harmless. A blank line ends a list.
+
+Both list styles can be nested or mixed by indenting a child item:
+
+```markdown
+- Point 1
+  - Subpoint 1.1
+
+1. Point 1
+   1. Subpoint 1.1
+```
 
 ## Colours, fonts and geometry
 

@@ -8,7 +8,7 @@ renders the same way in Jupyter, Colab and VS Code:
 ``## subtitle``
     Section heading inside the slide.
 ``- item`` / ``1. item``
-    Bullet and numbered lists.
+    Bullet and numbered lists. Indent items to create nested lists.
 ``> note``
     Highlighted call-out, drawn with the slide's accent colour.
 ``**bold**``, ``*italic*``, ```` `code` ````, ``[text](url)``
@@ -33,7 +33,9 @@ _BOLD_ITALIC = re.compile(r"\*\*\*(.+?)\*\*\*")
 _BOLD = re.compile(r"\*\*(.+?)\*\*")
 _ITALIC = re.compile(r"\*(.+?)\*")
 _LINK = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
-_ORDERED_ITEM = re.compile(r"^(\d+)[.)]\s+(.*)$")
+_LIST_ITEM = re.compile(
+    r"^(?P<indent>[ \t]*)(?:(?P<bullet>-)|(?P<number>\d+)[.)])\s+(?P<text>.*)$"
+)
 _SAFE_URL = re.compile(r"^(https?:|mailto:|#|/|\./|\.\./)", re.IGNORECASE)
 
 
@@ -70,6 +72,43 @@ def format_inline(text: str, theme: Theme | None = None) -> str:
     return "".join(parts)
 
 
+def _render_list(items: list[tuple[int, str, str]], theme: Theme) -> str:
+    """Render one contiguous run of list items, preserving indentation levels."""
+    html: list[str] = []
+    stack: list[tuple[int, str]] = []
+
+    def open_list(indent: int, tag: str) -> None:
+        style = (
+            "margin:18px 0 8px;padding-left:30px"
+            if not stack
+            else "margin:6px 0 2px;padding-left:28px"
+        )
+        html.append(f"<{tag} style='{style}'>")
+        stack.append((indent, tag))
+
+    def close_list() -> None:
+        _indent, tag = stack.pop()
+        html.append(f"</li></{tag}>")
+
+    for indent, tag, item_text in items:
+        while stack and indent < stack[-1][0]:
+            close_list()
+
+        if not stack or indent > stack[-1][0]:
+            open_list(indent, tag)
+        elif tag == stack[-1][1]:
+            html.append("</li>")
+        else:
+            close_list()
+            open_list(indent, tag)
+
+        html.append("<li style='margin:10px 0'>" + format_inline(item_text, theme))
+
+    while stack:
+        close_list()
+    return "".join(html)
+
+
 def markdown_to_html(
     text: str,
     theme: Theme | None = None,
@@ -83,42 +122,23 @@ def markdown_to_html(
     """
     theme = theme or Theme()
     blocks: list[str] = []
-    items: list[str] = []
-    ordered = False
+    list_items: list[tuple[int, str, str]] = []
     heading_alignment = f"text-align:{heading_align};" if heading_align else ""
 
     def close_list() -> None:
-        nonlocal ordered
-        if items:
-            tag = "ol" if ordered else "ul"
-            blocks.append(
-                f"<{tag} style='margin:18px 0 8px;padding-left:30px'>"
-                + "".join(items)
-                + f"</{tag}>"
-            )
-            items.clear()
-        ordered = False
+        if list_items:
+            blocks.append(_render_list(list_items, theme))
+            list_items.clear()
 
     for raw in text.strip().splitlines():
         line = raw.strip()
-        ordered_match = _ORDERED_ITEM.match(line)
+        list_match = _LIST_ITEM.match(raw)
         if not line:
             close_list()
-        elif line.startswith("- "):
-            if ordered:
-                close_list()
-            items.append(
-                "<li style='margin:10px 0'>" + format_inline(line[2:], theme) + "</li>"
-            )
-        elif ordered_match:
-            if items and not ordered:
-                close_list()
-            ordered = True
-            items.append(
-                "<li style='margin:10px 0'>"
-                + format_inline(ordered_match.group(2), theme)
-                + "</li>"
-            )
+        elif list_match:
+            indent = len(list_match.group("indent").expandtabs(4))
+            tag = "ul" if list_match.group("bullet") else "ol"
+            list_items.append((indent, tag, list_match.group("text")))
         else:
             close_list()
             if line.startswith("# "):
