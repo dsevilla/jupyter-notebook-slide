@@ -44,7 +44,7 @@ In a notebook (Colab included), install and load in one go:
 %load_ext notebook_slide
 ```
 
-Pin a release with `@v0.1.4` at the end of the URL.
+Pin a release with `@v0.1.5` at the end of the URL.
 
 ## Slide types
 
@@ -53,7 +53,7 @@ Pin a release with `@v0.1.4` at the end of the URL.
 | `preview` (default) | Coming up | left-aligned | what the next stretch of notebook will do |
 | `summary` | Recap | left-aligned | what the reader should take away |
 | `question` | Guiding question | left-aligned | the question the next cells answer |
-| `title` | — | centred headings, left-aligned body, framed both sides | a section break between parts |
+| `title` | — | centred headings and left-aligned body | a section break between parts |
 
 ```python
 %%slide title

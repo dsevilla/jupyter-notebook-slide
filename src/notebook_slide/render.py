@@ -237,8 +237,6 @@ def _render_title(content: str, theme: Theme) -> str:
      min-height:{theme.min_height};margin:{theme.margin};padding:{theme.padding};
      background:{theme.background};color:{theme.foreground};
      border:1px solid {theme.border};
-     border-left:{theme.accent_bar_width} solid {theme.accent};
-     border-right:{theme.accent_bar_width} solid {theme.accent};
      border-radius:{theme.border_radius};font-family:{theme.font_family};
      font-size:{theme.font_size};line-height:{theme.line_height};
      display:flex;flex-direction:column;justify-content:center;

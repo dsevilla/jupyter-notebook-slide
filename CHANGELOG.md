@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-09-11
+
+### Fixed
+
+- Title slides no longer draw solid accent-coloured side borders, avoiding
+  visible seams and mismatched colours where gradient backgrounds meet the
+  rounded corners.
+
 ## [0.1.4] - 2026-09-11
 
 ### Changed
@@ -69,7 +77,8 @@ the BDGE course notebooks and translated to English.
 - Python API (`slide`, `slide_html`, `markdown_to_html`, `format_inline`) for
   use outside notebooks.
 
-[Unreleased]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/dsevilla/jupyter-notebook-slide/compare/v0.1.1...v0.1.2

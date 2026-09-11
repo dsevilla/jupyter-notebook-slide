@@ -104,7 +104,10 @@ def test_title_layout_centres_headings_but_left_aligns_body():
     assert html.count("text-align:center") == 2
     assert "max-width:44ch;text-align:left" in html
     assert "<ul style='margin:18px 0 8px;padding-left:30px'>" in html
-    assert "border-left:10px solid" in html
+    assert "border:1px solid" in html
+    assert "border-radius:10px" in html
+    assert "border-left:" not in html
+    assert "border-right:" not in html
     assert "SECTION" not in html
     assert "Section" not in html
 
