@@ -150,3 +150,61 @@ def test_bold_italic_next_to_plain_bold_and_italic():
 
 def test_bold_italic_inside_code_is_left_alone():
     assert "***x***" in format_inline("`***x***`")
+
+
+def test_consecutive_quote_lines_share_one_callout():
+    html = markdown_to_html("> first line\n> second line")
+    assert html.count("border-left:6px solid") == 1
+    assert "first line<br>second line" in html
+
+
+def test_blank_line_splits_callouts():
+    html = markdown_to_html("> one\n\n> two")
+    assert html.count("border-left:6px solid") == 2
+
+
+def test_bare_quote_marker_starts_a_paragraph_inside_the_callout():
+    html = markdown_to_html("> first\n>\n> second")
+    assert html.count("border-left:6px solid") == 1
+    assert "<div style='margin-top:0px'>first</div>" in html
+    assert "<div style='margin-top:10px'>second</div>" in html
+
+
+def test_callout_ends_at_a_list_or_paragraph():
+    html = markdown_to_html("> note\n- item\n> other\nplain")
+    assert html.count("border-left:6px solid") == 2
+    assert html.index("note") < html.index("<ul") < html.index("other") < html.index("<p")
+
+
+def test_lone_quote_marker_renders_nothing():
+    assert markdown_to_html(">") == ""
+
+
+def test_formatting_inside_callout():
+    html = markdown_to_html("> a **bold** and *italic* `code`")
+    assert "<strong>bold</strong>" in html
+    assert "<em>italic</em>" in html
+    assert ">code</code>" in html
+
+
+def test_bold_may_contain_inline_code():
+    html = format_inline("**the `Id` is not sorted**.")
+    assert html.startswith("<strong>the <code")
+    assert ">Id</code> is not sorted</strong>." in html
+    assert "**" not in html
+
+
+def test_italic_may_contain_inline_code():
+    html = format_inline("*a `b` c*")
+    assert html.startswith("<em>a <code") and html.endswith("c</em>")
+
+
+def test_code_inside_link_text_but_not_url():
+    assert "<a href='https://x.org'" in format_inline("[the `x` docs](https://x.org)")
+    assert "<a" not in format_inline("[x](https://x.org/`y`)")
+
+
+def test_nul_characters_cannot_forge_placeholders():
+    html = format_inline("\x000\x00 `c`")
+    assert html.count("<code") == 1
+    assert "\x00" not in html

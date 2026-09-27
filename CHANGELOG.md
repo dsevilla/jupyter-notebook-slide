@@ -6,6 +6,20 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-09-27
+
+### Changed
+
+- Consecutive `>` lines now form a single call-out, each line on its own line
+  inside the box, instead of one box per line. A bare `>` line starts a new
+  paragraph within the same call-out; a blank line still ends it.
+
+### Fixed
+
+- Bold and italic runs that contain inline code (``**the `Id` column**``) now
+  render. Inline formatting used to be applied separately to the text on each
+  side of a code span, which left the asterisks unmatched and visible.
+
 ## [0.1.5] - 2026-09-11
 
 ### Fixed

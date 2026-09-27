@@ -44,7 +44,7 @@ In a notebook (Colab included), install and load in one go:
 %load_ext notebook_slide
 ```
 
-Pin a release with `@v0.1.5` at the end of the URL.
+Pin a release with `@v0.1.6` at the end of the URL.
 
 ## Slide types
 
@@ -73,13 +73,15 @@ Deliberately tiny, so a slide always fits on screen:
 | `## Subheading` | section heading inside the slide |
 | `- item` | bullet list (indent with spaces to nest items) |
 | `1. item` | numbered list (indent with spaces to nest items) |
-| `> note` | call-out box in the accent colour |
+| `> note` | call-out box in the accent colour; consecutive `>` lines share one box, each on its own line |
 | `**bold**`, `*italic*`, `***both***` | emphasis |
 | `` `code` `` | inline code chip |
 | `[text](https://…)` | link (only `http(s):`, `mailto:` and relative URLs) |
 
 Everything else becomes a paragraph, and all text is HTML-escaped, so pasting
-`<script>` into a slide is harmless. A blank line ends a list.
+`<script>` into a slide is harmless. A blank line ends a list or a call-out.
+Emphasis may contain inline code (``**the `Id` column**``), while the contents
+of a code chip are never formatted.
 
 Both list styles can be nested or mixed by indenting a child item:
 
@@ -89,6 +91,16 @@ Both list styles can be nested or mixed by indenting a child item:
 
 1. Point 1
    1. Subpoint 1.1
+```
+
+Consecutive `>` lines build one call-out with a line break between them; a bare
+`>` line opens a new paragraph inside the same box:
+
+```markdown
+> Key idea: moving less data is usually the first big optimisation.
+> **Measure** before and after.
+>
+> A second paragraph in the same call-out.
 ```
 
 ## Colours, fonts and geometry

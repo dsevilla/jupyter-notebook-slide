@@ -10,7 +10,9 @@ renders the same way in Jupyter, Colab and VS Code:
 ``- item`` / ``1. item``
     Bullet and numbered lists. Indent items to create nested lists.
 ``> note``
-    Highlighted call-out, drawn with the slide's accent colour.
+    Highlighted call-out, drawn with the slide's accent colour. Consecutive
+    ``>`` lines form a single call-out, each on its own line; a bare ``>``
+    line starts a new paragraph inside it.
 ``**bold**``, ``*italic*``, ```` `code` ````, ``[text](url)``
     Inline formatting.
 
@@ -32,7 +34,9 @@ _CODE_SPLIT = re.compile(r"(`[^`]*`)")
 _BOLD_ITALIC = re.compile(r"\*\*\*(.+?)\*\*\*")
 _BOLD = re.compile(r"\*\*(.+?)\*\*")
 _ITALIC = re.compile(r"\*(.+?)\*")
-_LINK = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
+# The URL may not contain a code placeholder: its HTML would break the href.
+_LINK = re.compile(r"\[([^\]]+)\]\(([^)\s\x00]+)\)")
+_PLACEHOLDER = re.compile(r"\x00(\d+)\x00")
 _LIST_ITEM = re.compile(
     r"^(?P<indent>[ \t]*)(?:(?P<bullet>-)|(?P<number>\d+)[.)])\s+(?P<text>.*)$"
 )
@@ -50,26 +54,29 @@ def _link_replacement(match: re.Match[str], theme: Theme) -> str:
 def format_inline(text: str, theme: Theme | None = None) -> str:
     """Escape ``text`` and apply inline code, bold, italic and links."""
     theme = theme or Theme()
-    parts: list[str] = []
-    for chunk in _CODE_SPLIT.split(text):
-        if chunk.startswith("`") and chunk.endswith("`") and len(chunk) >= 2:
-            code = escape(chunk[1:-1])
-            parts.append(
-                f"<code style='background:{theme.code_background};"
-                f"color:{theme.code_foreground};padding:2px 6px;"
-                f"border-radius:4px;font-size:0.9em'>{code}</code>"
-            )
-            continue
+    # Code spans are swapped for placeholders before any other formatting, so
+    # their contents are never formatted while a bold or italic run may still
+    # contain them (``**the `Id` column**``). Formatting each chunk between
+    # code spans separately would split such a run and leave its asterisks
+    # unmatched. NUL never survives in slide text and `escape` leaves it alone.
+    codes: list[str] = []
 
-        safe = escape(chunk)
-        # Bold-italic first: otherwise `***x***` would be split into a bold run
-        # and a stray asterisk, producing mis-nested tags.
-        safe = _BOLD_ITALIC.sub(lambda m: f"<strong><em>{m.group(1)}</em></strong>", safe)
-        safe = _BOLD.sub(lambda m: f"<strong>{m.group(1)}</strong>", safe)
-        safe = _ITALIC.sub(lambda m: f"<em>{m.group(1)}</em>", safe)
-        safe = _LINK.sub(lambda m: _link_replacement(m, theme), safe)
-        parts.append(safe)
-    return "".join(parts)
+    def stash(match: re.Match[str]) -> str:
+        codes.append(
+            f"<code style='background:{theme.code_background};"
+            f"color:{theme.code_foreground};padding:2px 6px;"
+            f"border-radius:4px;font-size:0.9em'>{escape(match.group(1)[1:-1])}</code>"
+        )
+        return f"\x00{len(codes) - 1}\x00"
+
+    safe = escape(_CODE_SPLIT.sub(stash, text.replace("\x00", "")))
+    # Bold-italic first: otherwise `***x***` would be split into a bold run
+    # and a stray asterisk, producing mis-nested tags.
+    safe = _BOLD_ITALIC.sub(lambda m: f"<strong><em>{m.group(1)}</em></strong>", safe)
+    safe = _BOLD.sub(lambda m: f"<strong>{m.group(1)}</strong>", safe)
+    safe = _ITALIC.sub(lambda m: f"<em>{m.group(1)}</em>", safe)
+    safe = _LINK.sub(lambda m: _link_replacement(m, theme), safe)
+    return _PLACEHOLDER.sub(lambda m: codes[int(m.group(1))], safe)
 
 
 def _render_list(items: list[tuple[int, str, str]], theme: Theme) -> str:
@@ -123,6 +130,7 @@ def markdown_to_html(
     theme = theme or Theme()
     blocks: list[str] = []
     list_items: list[tuple[int, str, str]] = []
+    quote_lines: list[str] = []
     heading_alignment = f"text-align:{heading_align};" if heading_align else ""
 
     def close_list() -> None:
@@ -130,9 +138,20 @@ def markdown_to_html(
             blocks.append(_render_list(list_items, theme))
             list_items.clear()
 
+    def close_quote() -> None:
+        if quote_lines:
+            blocks.append(_render_quote(quote_lines, theme))
+            quote_lines.clear()
+
     for raw in text.strip().splitlines():
         line = raw.strip()
         list_match = _LIST_ITEM.match(raw)
+        if line == ">" or line.startswith("> "):
+            # Consecutive `>` lines form a single call-out, one line each.
+            close_list()
+            quote_lines.append(line[2:])
+            continue
+        close_quote()
         if not line:
             close_list()
         elif list_match:
@@ -159,19 +178,38 @@ def markdown_to_html(
                     + format_inline(line[3:], theme)
                     + "</h2>"
                 )
-            elif line.startswith("> "):
-                blocks.append(
-                    f"<div style='background:{theme.quote_background};"
-                    f"border-left:6px solid {theme.accent};"
-                    "margin-top:22px;padding:12px 16px'>"
-                    + format_inline(line[2:], theme)
-                    + "</div>"
-                )
             else:
                 blocks.append("<p style='margin:10px 0'>" + format_inline(line, theme) + "</p>")
 
+    close_quote()
     close_list()
     return "".join(blocks)
+
+
+def _render_quote(lines: list[str], theme: Theme) -> str:
+    """Render one run of ``>`` lines as a single call-out.
+
+    Each line keeps its own line in the box; a bare ``>`` line separates
+    paragraphs inside it.
+    """
+    paragraphs: list[list[str]] = [[]]
+    for line in lines:
+        if line.strip():
+            paragraphs[-1].append(format_inline(line, theme))
+        elif paragraphs[-1]:
+            paragraphs.append([])
+    paragraphs = [p for p in paragraphs if p]
+    if not paragraphs:
+        return ""
+    body = "".join(
+        f"<div style='margin-top:{0 if i == 0 else 10}px'>" + "<br>".join(p) + "</div>"
+        for i, p in enumerate(paragraphs)
+    )
+    return (
+        f"<div style='background:{theme.quote_background};"
+        f"border-left:6px solid {theme.accent};"
+        f"margin-top:22px;padding:12px 16px'>{body}</div>"
+    )
 
 
 def _font_link(theme: Theme) -> str:
