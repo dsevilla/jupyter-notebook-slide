@@ -141,7 +141,10 @@ def _render_list(items: list[tuple[int, str, str]], theme: Theme) -> str:
             close_list()
             open_list(indent, tag)
 
-        html.append("<li style='margin:10px 0'>" + format_inline(item_text, theme))
+        html.append(
+            "<li style='margin:10px 0;list-style-position:outside'>"
+            + format_inline(item_text, theme)
+        )
 
     while stack:
         close_list()

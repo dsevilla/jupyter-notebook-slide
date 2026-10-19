@@ -94,7 +94,8 @@ joins the pieces with a space and lets the slide wrap naturally at its width:
    def
 ```
 
-These examples each produce one list item. The same rule applies to headings,
+These examples each produce one list item. Wrapped lines align with the item
+text, below the bullet or number. The same rule applies to headings,
 paragraphs and call-out lines. A new list or call-out marker starts a new line;
 a blank line ends the continuation.
 

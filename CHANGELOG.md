@@ -10,7 +10,7 @@ All notable changes to this project are documented here. The format follows
 
 - Source lines aligned with the previous line's text now continue the same
   heading, paragraph, list item or call-out line, leaving visual wrapping to
-  the slide width.
+  the slide width. Wrapped list text aligns below the first word.
 
 ## [0.1.6] - 2026-09-27
 
