@@ -76,6 +76,28 @@ def test_nested_lists_can_mix_markers_and_return_multiple_levels():
     assert "Second</li></ol></li><li" in html
 
 
+def test_source_wraps_continue_list_items_at_the_text_column():
+    html = markdown_to_html("- abc\n  def\n  - child\n    continued\n- last")
+    assert html.count("<li") == 3
+    assert "abc def<ul" in html
+    assert "child continued</li></ul>" in html
+    assert "<p" not in html
+
+    numbered = markdown_to_html("1. abc\n   def\n2. last")
+    assert numbered.count("<li") == 2
+    assert "abc def</li><li" in numbered
+
+
+def test_source_wraps_continue_paragraphs_headings_and_callout_lines():
+    html = markdown_to_html(
+        "# Long\n  heading\n\nfirst\nsecond\n\n> note\n  continued\n> new line"
+    )
+    assert "Long heading</h1>" in html
+    assert html.count("<p") == 1
+    assert "first second</p>" in html
+    assert "note continued<br>new line" in html
+
+
 def test_theme_colours_reach_the_output():
     theme = Theme(accent="#123456", background="#abcdef", heading="#0f0f0f")
     html = render_slide("# Hi", default_slide_types()["preview"].replace(color=None), theme)

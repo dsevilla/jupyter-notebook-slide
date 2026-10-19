@@ -6,6 +6,12 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- Source lines aligned with the previous line's text now continue the same
+  heading, paragraph, list item or call-out line, leaving visual wrapping to
+  the slide width.
+
 ## [0.1.6] - 2026-09-27
 
 ### Changed

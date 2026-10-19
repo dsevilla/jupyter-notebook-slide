@@ -43,6 +43,38 @@ _LIST_ITEM = re.compile(
 _SAFE_URL = re.compile(r"^(https?:|mailto:|#|/|\./|\.\./)", re.IGNORECASE)
 
 
+def _fold_continuation_lines(lines: list[str]) -> list[str]:
+    """Join source wraps aligned with the preceding line's text."""
+    folded: list[str] = []
+    content_column: int | None = None
+
+    for raw in lines:
+        line = raw.strip()
+        indent = len(raw[: len(raw) - len(raw.lstrip(" \t"))].expandtabs(4))
+        list_match = _LIST_ITEM.match(raw)
+        starts_block = (
+            list_match is not None or line == ">" or line.startswith(("> ", "# ", "## "))
+        )
+
+        if folded and line and not starts_block and indent == content_column:
+            folded[-1] = folded[-1].rstrip() + " " + line
+            continue
+
+        folded.append(raw)
+        if not line or line == ">":
+            content_column = None
+        elif list_match:
+            content_column = len(raw[: list_match.start("text")].expandtabs(4))
+        elif line.startswith("## "):
+            content_column = indent + 3
+        elif line.startswith(("# ", "> ")):
+            content_column = indent + 2
+        else:
+            content_column = indent
+
+    return folded
+
+
 def _link_replacement(match: re.Match[str], theme: Theme) -> str:
     text, url = match.group(1), match.group(2)
     if not _SAFE_URL.match(url):
@@ -143,7 +175,7 @@ def markdown_to_html(
             blocks.append(_render_quote(quote_lines, theme))
             quote_lines.clear()
 
-    for raw in text.strip().splitlines():
+    for raw in _fold_continuation_lines(text.strip("\n").splitlines()):
         line = raw.strip()
         list_match = _LIST_ITEM.match(raw)
         if line == ">" or line.startswith("> "):

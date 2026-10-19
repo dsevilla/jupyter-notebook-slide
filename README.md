@@ -83,6 +83,21 @@ Everything else becomes a paragraph, and all text is HTML-escaped, so pasting
 Emphasis may contain inline code (``**the `Id` column**``), while the contents
 of a code chip are never formatted.
 
+Wrap a long source line by aligning the next line with its text. The renderer
+joins the pieces with a space and lets the slide wrap naturally at its width:
+
+```markdown
+- abc
+  def
+
+1. abc
+   def
+```
+
+These examples each produce one list item. The same rule applies to headings,
+paragraphs and call-out lines. A new list or call-out marker starts a new line;
+a blank line ends the continuation.
+
 Both list styles can be nested or mixed by indenting a child item:
 
 ```markdown
