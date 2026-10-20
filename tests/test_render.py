@@ -248,7 +248,8 @@ def test_fallback_for_markdown_sanitisers_without_styles():
     stripped = _strip_styles(html)
     assert f'<hr color="{slide_type.color}" size="8" noshade>' in stripped
     assert f'<font color="{slide_type.color}"><b>Coming up</b></font>' in stripped
-    assert "<blockquote>note</blockquote>" in stripped.replace("<div>", "").replace("</div>", "")
+    unwrapped = stripped.replace("<div>", "").replace("</div>", "")
+    assert "<blockquote>note</blockquote>" in unwrapped
     # The text keeps the viewer's own colour, readable in light and dark themes.
     assert "color:inherit" in html.split("<font", 1)[1].split(">", 1)[0]
 

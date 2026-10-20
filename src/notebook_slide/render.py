@@ -87,7 +87,9 @@ def _fold_continuation_lines(lines: list[str]) -> list[str]:
 
 def _fallback_bar(color: str, size: int) -> str:
     """Accent bar shown only where ``style`` attributes are stripped."""
-    return f'<hr color="{escape(color, quote=True)}" size="{size}" noshade style="display:none">'
+    return (
+        f'<hr color="{escape(color, quote=True)}" size="{size}" noshade style="display:none">'
+    )
 
 
 def _link_replacement(match: re.Match[str], theme: Theme) -> str:
@@ -223,7 +225,8 @@ def markdown_to_html(
                 )
             elif line.startswith("## "):
                 blocks.append(
-                    f'<h2{heading_attribute} style="color:{escape(theme.subheading, quote=True)};'
+                    f'<h2{heading_attribute} style="color:'
+                    f"{escape(theme.subheading, quote=True)};"
                     f"font-family:{escape(theme.headings_font, quote=True)};"
                     f"font-size:{theme.subheading_font_size};"
                     f'{heading_alignment}margin:18px 0 8px">'
