@@ -12,6 +12,11 @@ All notable changes to this project are documented here. The format follows
   heading, paragraph, list item or call-out line, leaving visual wrapping to
   the slide width. Wrapped list text aligns below the first word.
 - The call-out is now a `<blockquote>` (same look where styles apply).
+- The slide HTML is a single line with no whitespace between tags or style
+  declarations, single quotes are no longer escaped inside double-quoted
+  attributes and the default font stack drops the spaces after its commas.
+  The rendering is unchanged; notebooks that store the HTML (as cell output
+  or inside a string literal) get much shorter.
 
 ### Added
 

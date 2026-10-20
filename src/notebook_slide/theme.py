@@ -27,7 +27,7 @@ __all__ = [
 #: a highly legible face designed for low-vision readers; the rest of the
 #: stack keeps slides sane when the web font cannot be downloaded.
 DEFAULT_FONT_FAMILY = (
-    "'Atkinson Hyperlegible', Inter, Aptos, 'Segoe UI', Helvetica, Arial, sans-serif"
+    "'Atkinson Hyperlegible',Inter,Aptos,'Segoe UI',Helvetica,Arial,sans-serif"
 )
 
 #: Stylesheet pulled in before rendering so the default family is available.

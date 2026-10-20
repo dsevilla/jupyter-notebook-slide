@@ -53,6 +53,15 @@ _LIST_ITEM = re.compile(
 _SAFE_URL = re.compile(r"^(https?:|mailto:|#|/|\./|\.\./)", re.IGNORECASE)
 
 
+def _attribute(value: str) -> str:
+    """Escape ``value`` for a double-quoted attribute.
+
+    Unlike ``escape(value, quote=True)`` it leaves single quotes alone, so a
+    font stack such as ``'Segoe UI'`` is not lengthened to ``&#x27;Segoe UI&#x27;``.
+    """
+    return escape(value, quote=False).replace('"', "&quot;")
+
+
 def _fold_continuation_lines(lines: list[str]) -> list[str]:
     """Join source wraps aligned with the preceding line's text."""
     folded: list[str] = []
@@ -87,9 +96,7 @@ def _fold_continuation_lines(lines: list[str]) -> list[str]:
 
 def _fallback_bar(color: str, size: int) -> str:
     """Accent bar shown only where ``style`` attributes are stripped."""
-    return (
-        f'<hr color="{escape(color, quote=True)}" size="{size}" noshade style="display:none">'
-    )
+    return f'<hr color="{_attribute(color)}" size="{size}" noshade style="display:none">'
 
 
 def _link_replacement(match: re.Match[str], theme: Theme) -> str:
@@ -185,7 +192,7 @@ def markdown_to_html(
     quote_lines: list[str] = []
     heading_alignment = f"text-align:{heading_align};" if heading_align else ""
     # `align` keeps the alignment where the `style` attribute is stripped.
-    heading_attribute = f' align="{escape(heading_align, quote=True)}"' if heading_align else ""
+    heading_attribute = f' align="{_attribute(heading_align)}"' if heading_align else ""
 
     def close_list() -> None:
         if list_items:
@@ -216,8 +223,8 @@ def markdown_to_html(
             close_list()
             if line.startswith("# "):
                 blocks.append(
-                    f'<h1{heading_attribute} style="color:{escape(theme.heading, quote=True)};'
-                    f"font-family:{escape(theme.headings_font, quote=True)};"
+                    f'<h1{heading_attribute} style="color:{_attribute(theme.heading)};'
+                    f"font-family:{_attribute(theme.headings_font)};"
                     f"font-size:{theme.heading_font_size};line-height:1.15;"
                     f'{heading_alignment}margin:0 0 22px">'
                     + format_inline(line[2:], theme)
@@ -226,8 +233,8 @@ def markdown_to_html(
             elif line.startswith("## "):
                 blocks.append(
                     f'<h2{heading_attribute} style="color:'
-                    f"{escape(theme.subheading, quote=True)};"
-                    f"font-family:{escape(theme.headings_font, quote=True)};"
+                    f"{_attribute(theme.subheading)};"
+                    f"font-family:{_attribute(theme.headings_font)};"
                     f"font-size:{theme.subheading_font_size};"
                     f'{heading_alignment}margin:18px 0 8px">'
                     + format_inline(line[3:], theme)
@@ -272,7 +279,38 @@ def _render_quote(lines: list[str], theme: Theme) -> str:
 def _font_link(theme: Theme) -> str:
     if not theme.font_url:
         return ""
-    return f'<link rel="stylesheet" href="{escape(theme.font_url, quote=True)}">\n'
+    return f'<link rel="stylesheet" href="{_attribute(theme.font_url)}">'
+
+
+def _frame(content: str, theme: Theme, *declarations: str) -> str:
+    """Wrap ``content`` in the slide box.
+
+    The HTML is a single line without whitespace between tags or style
+    declarations: it is usually stored in the notebook, sometimes inside a
+    string literal, and indentation would only make it longer. ``declarations``
+    are the layout's own additions to the shared box style.
+    """
+    style = ";".join(
+        (
+            "box-sizing:border-box",
+            "width:100%",
+            f"max-width:{theme.max_width}",
+            f"min-height:{theme.min_height}",
+            f"margin:{theme.margin}",
+            f"padding:{theme.padding}",
+            f"background:{theme.background}",
+            f"color:{theme.foreground}",
+            f"border:1px solid {theme.border}",
+            *declarations,
+            f"border-radius:{theme.border_radius}",
+            f"font-family:{theme.font_family}",
+            f"font-size:{theme.font_size}",
+            f"line-height:{theme.line_height}",
+            "text-align:left",
+            "overflow:hidden",
+        )
+    )
+    return f'{_font_link(theme)}<div style="{style}">{content}</div>'
 
 
 def render_slide(
@@ -306,41 +344,26 @@ def _render_default(content: str, badge: str, theme: Theme) -> str:
     badge_html = (
         f'<div style="color:{theme.accent};font-size:{theme.label_font_size};'
         "font-weight:bold;letter-spacing:1px;margin-bottom:18px;"
-        f'text-transform:uppercase"><font color="{escape(theme.accent, quote=True)}" '
+        f'text-transform:uppercase"><font color="{_attribute(theme.accent)}" '
         f'style="color:inherit"><b>{escape(badge)}</b></font></div>'
         if badge
         else ""
     )
-    return f"""
-{_font_link(theme)}<div style="box-sizing:border-box;width:100%;max-width:{theme.max_width};
-     min-height:{theme.min_height};margin:{theme.margin};padding:{theme.padding};
-     background:{theme.background};color:{theme.foreground};
-     border:1px solid {theme.border};
-     border-top:{theme.accent_bar_width} solid {theme.accent};
-     border-radius:{theme.border_radius};font-family:{theme.font_family};
-     font-size:{theme.font_size};line-height:{theme.line_height};
-     text-align:left;overflow:hidden">
-  {_fallback_bar(theme.accent, 8)}
-  {badge_html}
-  {content}
-  {_fallback_bar(theme.accent, 2)}
-</div>
-"""
+    return _frame(
+        _fallback_bar(theme.accent, 8) + badge_html + content + _fallback_bar(theme.accent, 2),
+        theme,
+        f"border-top:{theme.accent_bar_width} solid {theme.accent}",
+    )
 
 
 def _render_title(content: str, theme: Theme) -> str:
     """Section divider with centred headings and a left-aligned body."""
-    return f"""
-{_font_link(theme)}<div style="box-sizing:border-box;width:100%;max-width:{theme.max_width};
-     min-height:{theme.min_height};margin:{theme.margin};padding:{theme.padding};
-     background:{theme.background};color:{theme.foreground};
-     border:1px solid {theme.border};
-     border-radius:{theme.border_radius};font-family:{theme.font_family};
-     font-size:{theme.font_size};line-height:{theme.line_height};
-     display:flex;flex-direction:column;justify-content:center;
-     text-align:left;overflow:hidden">
-  {_fallback_bar(theme.accent, 8)}
-  <div style="margin:0 auto;max-width:44ch;text-align:left">{content}</div>
-  {_fallback_bar(theme.accent, 8)}
-</div>
-"""
+    return _frame(
+        _fallback_bar(theme.accent, 8)
+        + f'<div style="margin:0 auto;max-width:44ch;text-align:left">{content}</div>'
+        + _fallback_bar(theme.accent, 8),
+        theme,
+        "display:flex",
+        "flex-direction:column",
+        "justify-content:center",
+    )

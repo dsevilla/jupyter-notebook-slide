@@ -258,3 +258,18 @@ def test_title_headings_keep_centring_without_styles():
     html = render_slide("# Part\n## Sub", default_slide_types()["title"])
     stripped = _strip_styles(html)
     assert '<h1 align="center">' in stripped and '<h2 align="center">' in stripped
+
+
+@pytest.mark.parametrize("slide_type", ["preview", "title"])
+def test_slide_html_is_a_single_compact_line(slide_type):
+    html = slide_html("# Title\n## Sub\n\n- one\n  - two\n\n> note\n>\n> more", type=slide_type)
+    assert "\n" not in html
+    assert not re.search(r">\s+<", html)
+    assert not re.search(r";\s", html)
+    assert "  " not in html
+
+
+def test_single_quotes_are_not_escaped_in_double_quoted_attributes():
+    html = slide_html("# Hi", theme=Theme(heading_font_family="'Fira Sans',sans-serif"))
+    assert "font-family:'Fira Sans',sans-serif;" in html
+    assert "&#x27;" not in html
