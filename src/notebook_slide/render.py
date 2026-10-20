@@ -19,6 +19,16 @@ renders the same way in Jupyter, Colab and VS Code:
 Anything else becomes a paragraph.  All text is HTML-escaped first, and the
 output uses inline ``style`` attributes only, since notebook viewers such as
 Colab strip ``<style>`` blocks from cell output.
+
+The same HTML may also be pasted into a Markdown cell.  Colab sanitises
+Markdown more strictly than output: it drops every ``style`` attribute but
+keeps legacy presentational ones (``color``, ``size``, ``noshade``,
+``align``).  The slide therefore carries a fallback built from those: accent
+bars drawn with ``<hr>`` elements that ``display:none`` hides wherever styles
+survive, the badge in an accent ``<font>`` whose colour ``color:inherit``
+cancels, the call-out as a ``<blockquote>`` and centred headings with
+``align``.  The fallback never sets the text or background colour, so it stays
+readable on Colab's light and dark themes.
 """
 
 from __future__ import annotations
@@ -73,6 +83,11 @@ def _fold_continuation_lines(lines: list[str]) -> list[str]:
             content_column = indent
 
     return folded
+
+
+def _fallback_bar(color: str, size: int) -> str:
+    """Accent bar shown only where ``style`` attributes are stripped."""
+    return f'<hr color="{escape(color, quote=True)}" size="{size}" noshade style="display:none">'
 
 
 def _link_replacement(match: re.Match[str], theme: Theme) -> str:
@@ -167,6 +182,8 @@ def markdown_to_html(
     list_items: list[tuple[int, str, str]] = []
     quote_lines: list[str] = []
     heading_alignment = f"text-align:{heading_align};" if heading_align else ""
+    # `align` keeps the alignment where the `style` attribute is stripped.
+    heading_attribute = f' align="{escape(heading_align, quote=True)}"' if heading_align else ""
 
     def close_list() -> None:
         if list_items:
@@ -197,7 +214,7 @@ def markdown_to_html(
             close_list()
             if line.startswith("# "):
                 blocks.append(
-                    f'<h1 style="color:{escape(theme.heading, quote=True)};'
+                    f'<h1{heading_attribute} style="color:{escape(theme.heading, quote=True)};'
                     f"font-family:{escape(theme.headings_font, quote=True)};"
                     f"font-size:{theme.heading_font_size};line-height:1.15;"
                     f'{heading_alignment}margin:0 0 22px">'
@@ -206,7 +223,7 @@ def markdown_to_html(
                 )
             elif line.startswith("## "):
                 blocks.append(
-                    f'<h2 style="color:{escape(theme.subheading, quote=True)};'
+                    f'<h2{heading_attribute} style="color:{escape(theme.subheading, quote=True)};'
                     f"font-family:{escape(theme.headings_font, quote=True)};"
                     f"font-size:{theme.subheading_font_size};"
                     f'{heading_alignment}margin:18px 0 8px">'
@@ -240,10 +257,12 @@ def _render_quote(lines: list[str], theme: Theme) -> str:
         f"<div style='margin-top:{0 if i == 0 else 10}px'>" + "<br>".join(p) + "</div>"
         for i, p in enumerate(paragraphs)
     )
+    # A blockquote, not a div, so the call-out stays set apart where styles
+    # are stripped. Its margin is spelled out to override the viewer's own.
     return (
-        f"<div style='background:{theme.quote_background};"
-        f"border-left:6px solid {theme.accent};"
-        f"margin-top:22px;padding:12px 16px'>{body}</div>"
+        f"<blockquote style='background:{theme.quote_background};color:inherit;"
+        f"border:none;border-left:6px solid {theme.accent};"
+        f"margin:22px 0 0;padding:12px 16px'>{body}</blockquote>"
     )
 
 
@@ -284,7 +303,8 @@ def _render_default(content: str, badge: str, theme: Theme) -> str:
     badge_html = (
         f'<div style="color:{theme.accent};font-size:{theme.label_font_size};'
         "font-weight:bold;letter-spacing:1px;margin-bottom:18px;"
-        f'text-transform:uppercase">{escape(badge)}</div>'
+        f'text-transform:uppercase"><font color="{escape(theme.accent, quote=True)}" '
+        f'style="color:inherit"><b>{escape(badge)}</b></font></div>'
         if badge
         else ""
     )
@@ -297,8 +317,10 @@ def _render_default(content: str, badge: str, theme: Theme) -> str:
      border-radius:{theme.border_radius};font-family:{theme.font_family};
      font-size:{theme.font_size};line-height:{theme.line_height};
      text-align:left;overflow:hidden">
+  {_fallback_bar(theme.accent, 8)}
   {badge_html}
   {content}
+  {_fallback_bar(theme.accent, 2)}
 </div>
 """
 
@@ -314,6 +336,8 @@ def _render_title(content: str, theme: Theme) -> str:
      font-size:{theme.font_size};line-height:{theme.line_height};
      display:flex;flex-direction:column;justify-content:center;
      text-align:left;overflow:hidden">
+  {_fallback_bar(theme.accent, 8)}
   <div style="margin:0 auto;max-width:44ch;text-align:left">{content}</div>
+  {_fallback_bar(theme.accent, 8)}
 </div>
 """

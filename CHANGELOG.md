@@ -11,6 +11,16 @@ All notable changes to this project are documented here. The format follows
 - Source lines aligned with the previous line's text now continue the same
   heading, paragraph, list item or call-out line, leaving visual wrapping to
   the slide width. Wrapped list text aligns below the first word.
+- The call-out is now a `<blockquote>` (same look where styles apply).
+
+### Added
+
+- A fallback for viewers that strip `style` attributes, such as Colab when the
+  slide HTML is pasted into a Markdown cell: accent bars drawn with `<hr>`
+  (hidden by `display:none` wherever styles survive), the badge in the accent
+  colour through `<font color>`, the call-out as a block quote and centred
+  headings with `align`. It never sets the text or background colour, so it
+  reads well on light and dark themes.
 
 ## [0.1.6] - 2026-09-27
 

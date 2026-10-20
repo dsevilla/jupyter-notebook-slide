@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 from notebook_slide import Theme, format_inline, markdown_to_html, render_slide, slide_html
@@ -230,3 +232,28 @@ def test_nul_characters_cannot_forge_placeholders():
     html = format_inline("\x000\x00 `c`")
     assert html.count("<code") == 1
     assert "\x00" not in html
+
+
+def _strip_styles(html: str) -> str:
+    """What Colab keeps of a slide pasted into a Markdown cell."""
+    return re.sub(r"\s+style=(\"[^\"]*\"|'[^']*')", "", html)
+
+
+def test_fallback_for_markdown_sanitisers_without_styles():
+    slide_type = default_slide_types()["preview"]
+    html = render_slide("# Title\n> note", slide_type)
+    bars = re.findall(r"<hr [^>]*>", html)
+    # Hidden where styles survive, so they never double the accent bar.
+    assert len(bars) == 2 and all("display:none" in bar for bar in bars)
+    stripped = _strip_styles(html)
+    assert f'<hr color="{slide_type.color}" size="8" noshade>' in stripped
+    assert f'<font color="{slide_type.color}"><b>Coming up</b></font>' in stripped
+    assert "<blockquote>note</blockquote>" in stripped.replace("<div>", "").replace("</div>", "")
+    # The text keeps the viewer's own colour, readable in light and dark themes.
+    assert "color:inherit" in html.split("<font", 1)[1].split(">", 1)[0]
+
+
+def test_title_headings_keep_centring_without_styles():
+    html = render_slide("# Part\n## Sub", default_slide_types()["title"])
+    stripped = _strip_styles(html)
+    assert '<h1 align="center">' in stripped and '<h2 align="center">' in stripped
